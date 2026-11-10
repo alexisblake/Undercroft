@@ -99,7 +99,7 @@ function planNext(){
     run=st;const sc=leafScore(st,path,E0,H0);
     if(sc>bestS){bestS=sc;best=path[0]||null;}
     if(st._dead||st._lost||leaves>LEAF_CAP)return;
-    const f=st.fight;if(f.plays<=0)return;
+    const f=st.fight;
     const tried=new Set();
     for(let i=0;i<f.hand.length;i++){
       const id=f.hand[i],c=CARDS[id],cost=c.cost==null?1:c.cost;
@@ -117,7 +117,7 @@ function planNext(){
 /* The simple bot: no lookahead. Block when the shown attack would get through, otherwise hit hardest. */
 function simpleNext(){
   const f=run.fight,m=f.m,[k,v]=m.i[m.idx%m.i.length];
-  const ok=f.plays<=0?[]:f.hand.filter(id=>{const c=CARDS[id];return !c.unp&&f.plays>=(c.cost==null?1:c.cost);});
+  const ok=f.hand.filter(id=>{const c=CARDS[id];return !c.unp&&f.plays>=(c.cost==null?1:c.cost);});
   if(!ok.length)return null;
   const inc=(!hidden(run)&&(k==='a'||k==='m')&&!m.stun)?atkVal(m,v)*(m.hits||1):0;
   const blk=id=>{const c=CARDS[id];return (c.blk||0)+(c.grow?c.grow[0]+c.grow[1]*f.thorns:0);};
@@ -130,7 +130,8 @@ const MAX_TURNS=60; /* a fight this long counts as a loss (the bot can't break t
 function fightStep(){
   const id=BOT==='simple'?simpleNext():planNext();
   if(id==null){run.fight.blocked=0;if(run.fight.turn>=MAX_TURNS){run.stalled=1;run.hp=0;loseFight();return;}endTurn();return;}
-  play(run.fight.hand.indexOf(id));
+  const f=run.fight,used=()=>f.hand.join()+'|'+(f.disc.length+f.exh.length+f.draw.length),n=used();play(f.hand.indexOf(id));
+  if(S.screen==='fight'&&run.fight===f&&used()===n){f.blocked=0;endTurn();} /* the game refused the card */
 }
 
 /* ---------- Between fights ---------- */
@@ -208,19 +209,36 @@ function step(){
 }
 
 /* ---------- A maxed hero: every perk at max, the chosen weapon in its final form ---------- */
-/* fresh=true: no perks and the weapon's first form (still level 6, so every line can be equipped). */
-function prepHero(hero,weapon,fresh){
+/* fresh=true: no perks and the weapon's first form (still level 6, so every line can be equipped).
+   pacts: Heat Pacts to run with (they need one earlier clear, so that is set too). */
+function prepHero(hero,weapon,fresh,pacts){
   meta=freshMeta();meta.depth=4;
   const h=hs(hero),H=HEROES[hero];
   h.level=fresh?6:20;h.weapon=weapon;h.wxp={[weapon]:fresh?0:WTIER[3]};
   if(!fresh)for(const k in H.perks)h.perks[k]=H.perks[k].max;
+  if(pacts&&pacts.length){meta.clears=1;h.pacts=pacts.slice();}
 }
-function simRun(hero,weapon,fresh){
-  prepHero(hero,weapon,fresh);S={screen:'home',tab:'play'};
+function playRun(hero){
+  S={screen:'home',tab:'play'};
   startRun(hero);
   let n=0;
   while(S.screen!=='end'){if(++n>20000)throw new Error('sim: run did not finish');step();}
   const m=run.fight&&run.fight.m;
-  return {won:!!run.amulet,stalled:!!run.stalled,layer:run.layer,chamber:run.chamber,killer:run.won?null:(m?m.id:null),hp:run.hp,deck:run.deck.length};
+  return {won:!!run.amulet,stalled:!!run.stalled,layer:run.layer,chamber:run.chamber,killer:run.won?null:(m?m.id:null),hp:run.hp,deck:run.deck.length,heat:run.heat};
 }
-function simBatch(hero,weapon,n,bot,fresh){BOT=bot||'smart';const out=[];for(let i=0;i<n;i++)out.push(simRun(hero,weapon,fresh));return out;}
+function simRun(hero,weapon,fresh,pacts){prepHero(hero,weapon,fresh,pacts);return playRun(hero);}
+function simBatch(hero,weapon,n,bot,fresh,pacts){BOT=bot||'smart';const out=[];for(let i=0;i<n;i++)out.push(simRun(hero,weapon,fresh,pacts));return out;}
+
+/* ---------- Campaign: one save from scratch, run after run, levelling and picking perks like a player ---------- */
+const perkRank=p=>p.hp?4:p.swap?3:p.add?2:p.open?2:1;
+function simCampaign(hero,weapon,runs,bot){
+  BOT=bot||'smart';meta=freshMeta();
+  const h=hs(hero),H=HEROES[hero],total=Object.values(H.perks).reduce((a,p)=>a+p.max,0);h.weapon=weapon;
+  const out=[];
+  for(let i=1;i<=runs;i++){
+    const perks=Object.values(h.perks).reduce((a,n)=>a+n,0),wt=tierOf(wxp(hero,curWeapon(hero).id));
+    const r=playRun(hero);r.i=i;r.perks=perks/total;r.tier=wt;r.level=h.level;out.push(r);
+    for(let g=0;h.pending>0&&g<50;g++){const ch=perkChoices();if(!ch.length){h.pending=0;break;}takePerk(bestBy(ch,k=>perkRank(H.perks[k])));}
+  }
+  return out;
+}

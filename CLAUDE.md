@@ -69,13 +69,19 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 
 ## Design state
 - Knight weapon lines (all swords): Oath, Bulwark (+1 Block per Block card), Riposte line ending in Guard Break
-  (shatter up to 5 enemy Guard and deal that much damage). Balance target: ~30% full-clear with a maxed hero.
+  (shatter up to 5 enemy Guard and deal that much damage).
+- Balance targets (decided 2026-11-10), full-clear rate by progress:
+  fresh hero, first runs 0–10% (first clear after roughly 8–15 runs) · halfway through upgrades 30–50% ·
+  maxed, Heat 0 80–90% (losses still possible) · maxed, Heat ~8 ~30% (where the old 30% target belongs) ·
+  maxed, Heat 16 5–10% (bragging rights).
   Sims 2026-11-10 (new sim, seed 1, 1000 runs): maxed Knight clears 96–100% with either bot, all lines; the
   maxed Rogue 89–100%. Fresh Knight: smart bot 24% Oath / 28% Bulwark / 28% Guard Break, simple bot ~1%
   (93–95% die on Floor 1, mostly to the Rat King and the Key Master). The old ~30% maxed figures can't be
   reproduced and came from a lost bot; treat them as void. The game is far off target with a maxed hero.
 - Each class has one weapon style (Knight swords, Rogue daggers, Mage staves), 12 weapons = 3 lines × 4 forms.
   Classes unlock by beating the game in different settings.
+- More dungeons are planned beyond the current four floors. Balance targets are tuned against the four floors
+  that exist; re-run the sims and re-check every target whenever a dungeon is added.
 - Floor rules: Floor 2 Rising Tide (+1 enemy attack from turn 4), Floor 3 Falling Stone.
 
 ## Open threads
@@ -84,10 +90,7 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 - Knight sheet has no ultimate rows. Rogue Brier weapon idea: thorns deal damage before the enemy attacks.
 - Two kings (Rat King, Fairy King on Floor 4): consider renaming one.
 - Card art spec: 96×40 (or 32×32 icons) in a 100×44 window on 116×162 cards; lock shop cards to 1× or 2× if painted.
-- Balance: maxed heroes are near 100% (see Design state). Lexi to decide what to change, and whether the ~30%
-  target means a maxed hero, a fresh one, or an expert player.
-- Zero-cost cards (Quick Draw, Sidestep, Flick) can't be played once both plays are used (`play()` stops at 0
-  plays), so "free" only means "doesn't use a play". Lexi to decide: intended, or let them play at 0.
+- Balance: maxed heroes are near 100%, far above the targets in Design state. Tuning pass next.
 - Hosting: Netlify (`netlify.toml`, production = main, previews per PR). Site connected; confirm previews appear on
   the first PR, then retire the claude.ai artifact as the playtest link.
 - Repo visibility (decided 2026-11-10): public for now, since the game is mainly for Lexi; this makes branch

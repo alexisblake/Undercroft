@@ -3,6 +3,8 @@
 Run:  python3 tests/sim/run_sim.py                      (maxed Knight, all three lines, 1000 runs each)
       python3 tests/sim/run_sim.py --hero cutpurse --runs 500 --seed 7
       python3 tests/sim/run_sim.py --weapons shield,spear --bot simple --fresh
+      python3 tests/sim/run_sim.py --heat 8             (maxed, two Heat 8 Pact sets; also --heat 16, --pacts hard,swift)
+      python3 tests/sim/run_sim.py --campaign 100       (100 saves from scratch, 120 runs each: progression curve)
 
 Two bots bracket a human: "smart" tries every play order each card (an expert who never misplays), "simple"
 blocks when an attack is coming and otherwise hits hardest (a casual player). --fresh: no perks, first-form weapon.
@@ -18,6 +20,8 @@ SKIP = {'src/input.js', 'src/boot.js'}  # clicks and art loading: not needed hea
 WEAPON_IDS = {'runaway': ['blade', 'shield', 'spear'], 'cutpurse': ['daggers', 'knives', 'garrote'],
               'ashbound': ['staff', 'frost', 'orb']}
 FLOORS = {1: 'Underbelly', 2: 'Sewers', 3: 'Ruins', 4: 'Fae Court'}
+HEAT_SETS = {8: [['hard', 'mighty', 'swift', 'tide'], ['bare', 'lean', 'swift', 'cursed']],  # tougher foes / weaker you
+             16: [['hard', 'mighty', 'swift', 'tide', 'bare', 'lean', 'cursed', 'starved', 'tight']]}
 
 def serve():
     class H(http.server.SimpleHTTPRequestHandler):
@@ -38,6 +42,10 @@ async def main():
     ap.add_argument('--seed', type=int, default=1)
     ap.add_argument('--bot', default='smart', choices=['smart', 'simple'])
     ap.add_argument('--fresh', action='store_true', help='no perks, first-form weapon (default: maxed)')
+    ap.add_argument('--heat', type=int, choices=sorted(HEAT_SETS), help='run the preset Pact sets for this Heat')
+    ap.add_argument('--pacts', default='', help='comma list of Pact ids, e.g. hard,swift')
+    ap.add_argument('--campaign', type=int, default=0, help='N saves from scratch instead of fixed-hero runs')
+    ap.add_argument('--campaign-runs', type=int, default=120)
     a = ap.parse_args()
     weapons = a.weapons.split(',') if a.weapons else WEAPON_IDS[a.hero]
 
@@ -58,13 +66,18 @@ async def main():
         print(f'{hero}, {kind}, {a.bot} bot. {a.runs} runs per line, seed {a.seed}.\n')
         mon = dict(await pg.evaluate("Object.entries(MON).map(([k,m])=>[k,m.n])")); mon['saint2'] = 'The Saint Unveiled'
 
-        for w in weapons:
+        if a.campaign:
+            await campaigns(pg, a, weapons, names); await b.close(); return
+        sets = HEAT_SETS[a.heat] if a.heat else [a.pacts.split(',')] if a.pacts else [[]]
+        for pacts, w in [(ps, w) for ps in sets for w in weapons]:
             if w not in names: sys.exit(f'Unknown weapon {w}; {a.hero} has {", ".join(names)}')
+            if pacts and pacts != sets[0] or pacts and w == weapons[0]:
+                if w == weapons[0]: print(f'Pacts: {", ".join(pacts)} (Heat {await pg.evaluate(f"pactHeat({pacts})")})')
             await pg.evaluate(f'seedRng({a.seed})')
             res, t0, left = [], time.time(), a.runs
             while left:
                 n = min(100, left); left -= n
-                res += await pg.evaluate(f"simBatch('{a.hero}','{w}',{n},'{a.bot}',{'true' if a.fresh else 'false'})")
+                res += await pg.evaluate(f"simBatch('{a.hero}','{w}',{n},'{a.bot}',{'true' if a.fresh else 'false'},{pacts})")
             wins = sum(r['won'] for r in res); pr = wins / len(res)
             ci = 1.96 * math.sqrt(pr * (1 - pr) / len(res)) * 100
             deaths = collections.Counter(r['layer'] for r in res if not r['won'])
@@ -75,5 +88,28 @@ async def main():
             if st: print(f'             stalled (fight hit {60} turns, counted as a loss): {st/len(res)*100:.0f}%')
             print('             top killers: ' + ', '.join(f'{mon.get(k, k)} {v/len(res)*100:.0f}%' for k, v in killers))
         await b.close()
+
+async def campaigns(pg, a, weapons, names):
+    print(f'Campaigns: {a.campaign} saves from scratch per line, {a.campaign_runs} runs each. '
+          'Early runs use the first line until the chosen one unlocks.\n')
+    for w in weapons:
+        await pg.evaluate(f'seedRng({a.seed})')
+        t0, camps = time.time(), []
+        for _ in range(a.campaign):
+            camps.append(await pg.evaluate(f"simCampaign('{a.hero}','{w}',{a.campaign_runs},'{a.bot}')"))
+        firsts = sorted(next((r['i'] for r in c if r['won']), a.campaign_runs + 1) for c in camps)
+        q = lambda f: firsts[min(len(firsts) - 1, int(f * len(firsts)))]
+        never = sum(x > a.campaign_runs for x in firsts)
+        rate = lambda rs: f"{sum(r['won'] for r in rs)/len(rs)*100:5.1f}% ({len(rs)} runs)" if rs else '   n/a'
+        allr = [r for c in camps for r in c]
+        maxed_at = sorted(next((r['i'] for r in c if r['perks'] >= 1 and r['tier'] == 3), a.campaign_runs + 1) for c in camps)
+        print(f'{names[w]}   [{time.time()-t0:.0f}s]')
+        print(f'  first clear on run: median {q(.5)}, middle half {q(.25)}–{q(.75)}' + (f', never in {never} saves' if never else ''))
+        print(f'  fully maxed (all perks + final form) by run: median {maxed_at[len(maxed_at)//2]}')
+        print(f'  runs 1–10:            {rate([r for r in allr if r["i"] <= 10])}')
+        for lo, hi, label in [(0, .25, 'perks 0–24%'), (.25, .5, 'perks 25–49%'), (.5, .75, 'perks 50–74%'),
+                              (.75, 1, 'perks 75–99%'), (1, 2, 'perks 100%')]:
+            print(f'  {label:<21} {rate([r for r in allr if lo <= r["perks"] < hi])}')
+        print()
 
 asyncio.run(main())
