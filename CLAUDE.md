@@ -78,6 +78,8 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 - Two kings (Rat King, Fairy King on Floor 4): consider renaming one.
 - Card art spec: 96×40 (or 32×32 icons) in a 100×44 window on 116×162 cards; lock shop cards to 1× or 2× if painted.
 - The old balance simulator was lost in a workspace reset; rebuild it as `tests/sim` when tuning next.
-- Hosting: set up for Netlify (`netlify.toml`, production = main, previews per PR). Lexi still has to connect the
-  repo in the Netlify dashboard and turn on GitHub branch protection for main. The claude.ai artifact remains the
-  playtest link until then.
+- Hosting: Netlify (`netlify.toml`, production = main, previews per PR). Site connected; confirm previews appear on
+  the first PR, then retire the claude.ai artifact as the playtest link.
+- Repo visibility (decided 2026-11-10): public for now, since the game is mainly for Lexi; this makes branch
+  protection free. If we decide to launch, switch to private + GitHub Pro. Everything in the repo, notes and
+  history included, is publicly readable until then.
