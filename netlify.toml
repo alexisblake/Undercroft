@@ -1,0 +1,31 @@
+# Netlify: the game is plain files, so there is no build step. Publish the repository root,
+# but keep the project's working files (tests, tools, notes) off the public site.
+[build]
+  publish = "."
+  command = ""
+
+[[redirects]]
+  from = "/tests/*"
+  to = "/404"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/tools/*"
+  to = "/404"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/.github/*"
+  to = "/404"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/CLAUDE.md"
+  to = "/404"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/404"
+  status = 404
+  force = true
