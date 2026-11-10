@@ -22,6 +22,10 @@ vision; Claude handles the details and executes.
 - Play locally: `python3 -m http.server` in the repo root, then open http://localhost:8000
 - Tests: `pip install playwright && playwright install chromium`, then `python3 tests/test_game.py`.
   They also run on every push (GitHub Actions). Run them before every commit that touches `src/` or `art/`.
+- Balance sim: `python3 tests/sim/run_sim.py` (maxed Knight, all lines, 1000 runs, ~1 min). Options: `--hero`,
+  `--weapons`, `--runs`, `--seed`, `--bot smart|simple`, `--fresh` (no perks, first-form weapon). It runs the real
+  game code headless, so it never drifts from the rules. Two bots bracket a human: `smart` tries every play order
+  (an expert), `simple` blocks when an attack is shown, otherwise hits hardest (a casual player). Same seed = same numbers.
 
 ## Code layout
 Classic `<script>` files loaded in order by `index.html`; they share one global scope (no modules, no bundler).
@@ -66,7 +70,10 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 ## Design state
 - Knight weapon lines (all swords): Oath, Bulwark (+1 Block per Block card), Riposte line ending in Guard Break
   (shatter up to 5 enemy Guard and deal that much damage). Balance target: ~30% full-clear with a maxed hero.
-  Last sims (maxed Knight, final forms): Bulwark ~34%, Guard Break ~33%, Oath ~26–28%.
+  Sims 2026-11-10 (new sim, seed 1, 1000 runs): maxed Knight clears 96–100% with either bot, all lines; the
+  maxed Rogue 89–100%. Fresh Knight: smart bot 24% Oath / 28% Bulwark / 28% Guard Break, simple bot ~1%
+  (93–95% die on Floor 1, mostly to the Rat King and the Key Master). The old ~30% maxed figures can't be
+  reproduced and came from a lost bot; treat them as void. The game is far off target with a maxed hero.
 - Each class has one weapon style (Knight swords, Rogue daggers, Mage staves), 12 weapons = 3 lines × 4 forms.
   Classes unlock by beating the game in different settings.
 - Floor rules: Floor 2 Rising Tide (+1 enemy attack from turn 4), Floor 3 Falling Stone.
@@ -77,7 +84,10 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 - Knight sheet has no ultimate rows. Rogue Brier weapon idea: thorns deal damage before the enemy attacks.
 - Two kings (Rat King, Fairy King on Floor 4): consider renaming one.
 - Card art spec: 96×40 (or 32×32 icons) in a 100×44 window on 116×162 cards; lock shop cards to 1× or 2× if painted.
-- The old balance simulator was lost in a workspace reset; rebuild it as `tests/sim` when tuning next.
+- Balance: maxed heroes are near 100% (see Design state). Lexi to decide what to change, and whether the ~30%
+  target means a maxed hero, a fresh one, or an expert player.
+- Zero-cost cards (Quick Draw, Sidestep, Flick) can't be played once both plays are used (`play()` stops at 0
+  plays), so "free" only means "doesn't use a play". Lexi to decide: intended, or let them play at 0.
 - Hosting: Netlify (`netlify.toml`, production = main, previews per PR). Site connected; confirm previews appear on
   the first PR, then retire the claude.ai artifact as the playtest link.
 - Repo visibility (decided 2026-11-10): public for now, since the game is mainly for Lexi; this makes branch
