@@ -75,7 +75,7 @@ function hit(n){
   return n-a;
 }
 function play(i){
-  const f=run.fight;if(!f||f.plays<=0||S.lock||S.dying)return;
+  const f=run.fight;if(!f||S.lock||S.dying)return;
   const id=f.hand[i],c=CARDS[id],cost=c.cost==null?1:c.cost;if(f.plays<cost||c.unp)return;f.plays-=cost;
   const wasExposed=f.m.exp>0,fhp0=f.m.hp,php0=run.hp;
   f.hand.splice(i,1);f.disc.push(id);
