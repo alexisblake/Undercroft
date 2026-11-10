@@ -69,9 +69,9 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
   Last sims (maxed Knight, final forms): Bulwark ~34%, Guard Break ~33%, Oath ~26–28%.
 - Each class has one weapon style (Knight swords, Rogue daggers, Mage staves), 12 weapons = 3 lines × 4 forms.
   Classes unlock by beating the game in different settings.
+- Floor rules: Floor 2 Rising Tide (+1 enemy attack from turn 4), Floor 3 Falling Stone.
 - Zero-cost cards (Quick Draw, Sidestep, Flick) never use a play and can be played at any point in the turn,
   including after both plays are spent (decided 2026-11-10).
-- Floor rules: Floor 2 Rising Tide (+1 enemy attack from turn 4), Floor 3 Falling Stone.
 
 ## Open threads
 - Choirmaster: Lexi is making a new sheet. Floor 3 and Floor 4 enemies still use placeholder art.
