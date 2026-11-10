@@ -2,21 +2,21 @@
 "use strict";
 /* ---------- HEAT: opt-in Pacts after the first amulet ---------- */
 const PACTS=[
-  {id:'hard',n:'Hardened Foes',x:'All enemies have 20% more HP.',heat:3},
-  {id:'mighty',n:'Mighty Bosses',x:'Minibosses and bosses have another 25% more HP.',heat:2},
-  {id:'swift',n:'Swift Foes',x:'Enemies start every fight with +1 Attack.',heat:2},
-  {id:'tide',n:'Cruel Tide',x:'Rising Tide applies on every layer.',heat:1},
-  {id:'bare',n:'Bare Hands',x:'Your weapon fights one form weaker.',heat:3},
+  {id:'hard',n:'Hardened Foes',x:'All enemies have 15% more HP.',heat:3},
+  {id:'mighty',n:'Mighty Bosses',x:'Minibosses and bosses have another 10% more HP.',heat:1},
+  {id:'swift',n:'Swift Foes',x:'Enemies start every fight with +1 Attack.',heat:3},
+  {id:'tide',n:'Cruel Tide',x:'Rising Tide applies on every layer.',heat:2},
+  {id:'bare',n:'Bare Hands',x:'Your weapon fights one form weaker.',heat:2},
   {id:'lean',n:'Lean Times',x:'Heal doors and wells restore half as much.',heat:2},
-  {id:'cursed',n:'Cursed Deck',x:'Start the run with Fleas in your deck.',heat:1},
-  {id:'starved',n:'Starved',x:'Card rewards offer 2 choices instead of 3.',heat:1},
-  {id:'tight',n:'Tight Purse',x:'Shop prices are 50% higher.',heat:1},
+  {id:'cursed',n:'Cursed Deck',x:'Start the run with 2 Fleas in your deck.',heat:1},
+  {id:'starved',n:'Starved',x:'Card rewards and blessings offer one fewer choice.',heat:1},
+  {id:'tight',n:'Tight Purse',x:'Shop prices are 50% higher.',heat:2},
 ];
 const HEAT_LOOKS=[{c:'#FF7A3C',req:2,n:'Ember'},{c:'#B0203A',req:4,n:'Crimson'},{c:'#0E6E7A',req:6,n:'Abyss'},{c:'#F4F0FF',req:8,n:'Pearl'}];
 const heatOpen=()=>(meta.clears||0)>0;
 const hasP=k=>!!(run&&run.pacts&&run.pacts.includes(k));
 const pactHeat=ids=>ids.reduce((a,k)=>a+(PACTS.find(p=>p.id===k)||{heat:0}).heat,0);
-function hpMul(m){let f=1;if(hasP('hard'))f*=1.2;if(hasP('mighty')&&(m.boss||m.mini))f*=1.25;return f;}
+function hpMul(m){let f=1;if(hasP('hard'))f*=1.15;if(hasP('mighty')&&(m.boss||m.mini))f*=1.1;return f;}
 const LBASE={hair:LOOKS.hair.length,outfit:LOOKS.outfit.length};
 LOOKS.hair.push(...HEAT_LOOKS.map(x=>x.c));LOOKS.outfit.push(...HEAT_LOOKS.map(x=>x.c));
 function lookReq(part,i){return (LBASE[part]!=null&&i>=LBASE[part])?HEAT_LOOKS[i-LBASE[part]].req:0;}

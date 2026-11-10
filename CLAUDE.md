@@ -74,10 +74,13 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
   fresh hero, first runs 0–10% (first clear after roughly 8–15 runs) · halfway through upgrades 30–50% ·
   maxed, Heat 0 80–90% (losses still possible) · maxed, Heat ~8 ~30% (where the old 30% target belongs) ·
   maxed, Heat 16 5–10% (bragging rights).
-  Sims 2026-11-10 (new sim, seed 1, 1000 runs): maxed Knight clears 96–100% with either bot, all lines; the
-  maxed Rogue 89–100%. Fresh Knight: smart bot 24% Oath / 28% Bulwark / 28% Guard Break, simple bot ~1%
-  (93–95% die on Floor 1, mostly to the Rat King and the Key Master). The old ~30% maxed figures can't be
-  reproduced and came from a lost bot; treat them as void. The game is far off target with a maxed hero.
+- Tuning pass 2026-11-10 (Knight, sim seed 1; "casual" / "expert" = simple / smart bot):
+  Floors 3–4 multipliers raised to HP ×1.35 / ×1.45, attack ×1 (were ×1.2 / ×1.25, attack ×0.9) in `DEEP`.
+  Pact Heat: Hardened Foes 3 (now +15% HP), Mighty Bosses 1 (now +10%), Swift Foes 3, Cruel Tide 2,
+  Bare Hands 2, Lean Times 2, Cursed Deck 1 (now 2 Fleas), Starved 1 (now also one fewer blessing), Tight Purse 2.
+  All Pacts = Heat 17. Results: first clear on run ~14 casual / ~4 expert; halfway 36–62% casual / 87–98% expert;
+  maxed Heat 0 86% casual / 99% expert; Heat 8 median 23–31% casual / 74–89% expert;
+  Heat 16 0–1% casual / 7–27% expert. Starved still measures as ~free (the bots skip most cards).
 - Each class has one weapon style (Knight swords, Rogue daggers, Mage staves), 12 weapons = 3 lines × 4 forms.
   Classes unlock by beating the game in different settings.
 - More dungeons are planned beyond the current four floors. Balance targets are tuned against the four floors
@@ -92,7 +95,9 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 - Knight sheet has no ultimate rows. Rogue Brier weapon idea: thorns deal damage before the enemy attacks.
 - Two kings (Rat King, Fairy King on Floor 4): consider renaming one.
 - Card art spec: 96×40 (or 32×32 icons) in a 100×44 window on 116×162 cards; lock shop cards to 1× or 2× if painted.
-- Balance: maxed heroes are near 100%, far above the targets in Design state. Tuning pass next.
+- Balance: decide which player the targets describe. Casual bot matches early progression; Heat tiers fall
+  between the bots (casual at/below target, expert well above). Lexi's playtests on the preview settle it.
+  Halfway is still ~10 points high for Oath and Bulwark. Rogue and Mage not re-checked since the pass.
 - Hosting: Netlify (`netlify.toml`, production = main, previews per PR). Site connected; confirm previews appear on
   the first PR, then retire the claude.ai artifact as the playtest link.
 - Repo visibility (decided 2026-11-10): public for now, since the game is mainly for Lexi; this makes branch

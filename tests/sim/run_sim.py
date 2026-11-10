@@ -4,6 +4,7 @@ Run:  python3 tests/sim/run_sim.py                      (maxed Knight, all three
       python3 tests/sim/run_sim.py --hero cutpurse --runs 500 --seed 7
       python3 tests/sim/run_sim.py --weapons shield,spear --bot simple --fresh
       python3 tests/sim/run_sim.py --heat 8             (maxed, two Heat 8 Pact sets; also --heat 16, --pacts hard,swift)
+      python3 tests/sim/run_sim.py --heat-all 8 --runs 300 (every Pact combination worth exactly Heat 8)
       python3 tests/sim/run_sim.py --campaign 100       (100 saves from scratch, 120 runs each: progression curve)
 
 Two bots bracket a human: "smart" tries every play order each card (an expert who never misplays), "simple"
@@ -20,7 +21,7 @@ SKIP = {'src/input.js', 'src/boot.js'}  # clicks and art loading: not needed hea
 WEAPON_IDS = {'runaway': ['blade', 'shield', 'spear'], 'cutpurse': ['daggers', 'knives', 'garrote'],
               'ashbound': ['staff', 'frost', 'orb']}
 FLOORS = {1: 'Underbelly', 2: 'Sewers', 3: 'Ruins', 4: 'Fae Court'}
-HEAT_SETS = {8: [['hard', 'mighty', 'swift', 'tide'], ['bare', 'lean', 'swift', 'cursed']],  # tougher foes / weaker you
+HEAT_SETS = {8: [['hard', 'swift', 'bare'], ['tide', 'tight', 'lean', 'cursed', 'starved']],  # foes / you
              16: [['hard', 'mighty', 'swift', 'tide', 'bare', 'lean', 'cursed', 'starved', 'tight']]}
 
 def serve():
@@ -44,6 +45,7 @@ async def main():
     ap.add_argument('--fresh', action='store_true', help='no perks, first-form weapon (default: maxed)')
     ap.add_argument('--heat', type=int, choices=sorted(HEAT_SETS), help='run the preset Pact sets for this Heat')
     ap.add_argument('--pacts', default='', help='comma list of Pact ids, e.g. hard,swift')
+    ap.add_argument('--heat-all', type=int, default=0, help='every Pact combination worth exactly this Heat')
     ap.add_argument('--campaign', type=int, default=0, help='N saves from scratch instead of fixed-hero runs')
     ap.add_argument('--campaign-runs', type=int, default=120)
     a = ap.parse_args()
@@ -68,6 +70,8 @@ async def main():
 
         if a.campaign:
             await campaigns(pg, a, weapons, names); await b.close(); return
+        if a.heat_all:
+            await heat_all(pg, a, weapons, names); await b.close(); return
         sets = HEAT_SETS[a.heat] if a.heat else [a.pacts.split(',')] if a.pacts else [[]]
         for pacts, w in [(ps, w) for ps in sets for w in weapons]:
             if w not in names: sys.exit(f'Unknown weapon {w}; {a.hero} has {", ".join(names)}')
@@ -89,6 +93,21 @@ async def main():
             print('             top killers: ' + ', '.join(f'{mon.get(k, k)} {v/len(res)*100:.0f}%' for k, v in killers))
         await b.close()
 
+async def heat_all(pg, a, weapons, names):
+    pacts = await pg.evaluate("PACTS.map(p=>[p.id,p.heat])")
+    combos = [[pacts[i][0] for i in range(len(pacts)) if m >> i & 1] for m in range(1 << len(pacts))]
+    combos = [c for c in combos if sum(h for k, h in pacts if k in c) == a.heat_all]
+    print(f'{len(combos)} Pact combinations worth Heat {a.heat_all}, {a.runs} runs each per line.\n')
+    for w in weapons:
+        rows = []
+        for c in combos:
+            await pg.evaluate(f'seedRng({a.seed})')
+            res = await pg.evaluate(f"simBatch('{a.hero}','{w}',{a.runs},'{a.bot}',false,{c})")
+            rows.append((sum(r['won'] for r in res) / len(res) * 100, c))
+        rows.sort(); v = [r for r, _ in rows]
+        print(f'{names[w]}: median {v[len(v)//2]:.0f}%, range {v[0]:.0f}–{v[-1]:.0f}%')
+        print(f'  hardest: {", ".join(rows[0][1])} ({rows[0][0]:.0f}%)   easiest: {", ".join(rows[-1][1])} ({rows[-1][0]:.0f}%)')
+
 async def campaigns(pg, a, weapons, names):
     print(f'Campaigns: {a.campaign} saves from scratch per line, {a.campaign_runs} runs each. '
           'Early runs use the first line until the chosen one unlocks.\n')
@@ -107,6 +126,7 @@ async def campaigns(pg, a, weapons, names):
         print(f'  first clear on run: median {q(.5)}, middle half {q(.25)}–{q(.75)}' + (f', never in {never} saves' if never else ''))
         print(f'  fully maxed (all perks + final form) by run: median {maxed_at[len(maxed_at)//2]}')
         print(f'  runs 1–10:            {rate([r for r in allr if r["i"] <= 10])}')
+        print(f'  halfway (40–60% perks) {rate([r for r in allr if .4 <= r["perks"] <= .6])}')
         for lo, hi, label in [(0, .25, 'perks 0–24%'), (.25, .5, 'perks 25–49%'), (.5, .75, 'perks 50–74%'),
                               (.75, 1, 'perks 75–99%'), (1, 2, 'perks 100%')]:
             print(f'  {label:<21} {rate([r for r in allr if lo <= r["perks"] < hi])}')
