@@ -1,0 +1,10 @@
+#!/bin/sh
+# Refuse any push that would update main. Changes reach main only by merging an approved
+# pull request on GitHub, after Lexi has played its Netlify deploy preview.
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "pre-push: pushing to main is blocked. Push a branch and open a pull request instead." >&2
+    exit 1
+  fi
+done
+exit 0
