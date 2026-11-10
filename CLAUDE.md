@@ -7,6 +7,17 @@ own drawings) and the design direction; Claude implements, balances, tests, and 
 Lexi works in systems and sequences and wants dense, direct answers with honest trade-offs. She plans the
 vision; Claude handles the details and executes.
 
+## Standing rules
+1. Never push straight to main. Every change goes on a branch and into a pull request; Lexi approves and merges.
+2. Update this file whenever we make a decision (design, balance, art, naming, tooling), in the same branch as the change.
+3. Ask Lexi before spending more than 5 PixelLab generations on one task. Say the estimate up front.
+
+## Branch and preview workflow
+- Branch from main (`feature/…`, `art/…`, `balance/…`, `fix/…`), commit, run the tests, push the branch, open a PR.
+- Netlify builds a deploy preview for every PR (its own URL, posted on the PR). Lexi plays it there.
+- Only main is the live site. Merging an approved PR is the only way anything goes live.
+- `.githooks/pre-push` refuses pushes to main. New clones: run `git config core.hooksPath .githooks` once.
+
 ## Running and testing
 - Play locally: `python3 -m http.server` in the repo root, then open http://localhost:8000
 - Tests: `pip install playwright && playwright install chromium`, then `python3 tests/test_game.py`.
@@ -67,4 +78,6 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 - Two kings (Rat King, Fairy King on Floor 4): consider renaming one.
 - Card art spec: 96×40 (or 32×32 icons) in a 100×44 window on 116×162 cards; lock shop cards to 1× or 2× if painted.
 - The old balance simulator was lost in a workspace reset; rebuild it as `tests/sim` when tuning next.
-- Hosting: GitHub Pages or Netlify (Lexi to choose). The claude.ai artifact remains the playtest link until then.
+- Hosting: set up for Netlify (`netlify.toml`, production = main, previews per PR). Lexi still has to connect the
+  repo in the Netlify dashboard and turn on GitHub branch protection for main. The claude.ai artifact remains the
+  playtest link until then.
