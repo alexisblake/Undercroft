@@ -83,6 +83,8 @@ Heroes: runaway=The Knight, cutpurse=The Rogue, ashbound (placeholder art). Art 
 - More dungeons are planned beyond the current four floors. Balance targets are tuned against the four floors
   that exist; re-run the sims and re-check every target whenever a dungeon is added.
 - Floor rules: Floor 2 Rising Tide (+1 enemy attack from turn 4), Floor 3 Falling Stone.
+- Zero-cost cards (Quick Draw, Sidestep, Flick) never use a play and can be played at any point in the turn,
+  including after both plays are spent (decided 2026-11-10).
 
 ## Open threads
 - Choirmaster: Lexi is making a new sheet. Floor 3 and Floor 4 enemies still use placeholder art.
