@@ -5,7 +5,7 @@ function startRun(id){
   if(!HEROES[id]||!unlocked(id))return;
   const pacts=heatOpen()?(hs(id).pacts||[]).filter(k=>PACTS.some(p=>p.id===k)):[];
   const H=HEROES[id],h=hs(id),Wp=curWeapon(id),wt=Math.max(0,tierOf(wxp(id,Wp.id))-(pacts.includes('bare')?1:0)),c=Object.assign({},H.deck);
-  if(pacts.includes('cursed'))c.fleas=(c.fleas||0)+1;
+  if(pacts.includes('cursed'))c.fleas=(c.fleas||0)+2;
   for(const k in Wp.kits[wt])c[k]=(c[k]||0)+Wp.kits[wt][k];
   let hp=H.hp,heal=0,open=0;
   for(const k in h.perks){
@@ -75,7 +75,7 @@ function hit(n){
   return n-a;
 }
 function play(i){
-  const f=run.fight;if(!f||f.plays<=0||S.lock||S.dying)return;
+  const f=run.fight;if(!f||S.lock||S.dying)return;
   const id=f.hand[i],c=CARDS[id],cost=c.cost==null?1:c.cost;if(f.plays<cost||c.unp)return;f.plays-=cost;
   const wasExposed=f.m.exp>0,fhp0=f.m.hp,php0=run.hp;
   f.hand.splice(i,1);f.disc.push(id);
@@ -218,7 +218,7 @@ function winNow(){
   if(r.type==='heal'){const h=Math.min(healDoor(),run.max-run.hp);run.hp+=h;r.healed=h;}
   if(r.type==='embers'){run.embers+=EMBER_DOOR;}
   if(r.type==='card'&&!r.opts)r.opts=lootPick(hasP('starved')?2:3);
-  if(r.type==='boon'){r.opts=shuffle(PATRONS[r.p].cards.slice()).slice(0,2);const d=availDuos(r.p);if(d.length)r.opts.push(rnd(d));}
+  if(r.type==='boon'){r.opts=shuffle(PATRONS[r.p].cards.slice()).slice(0,hasP('starved')?1:2);const d=availDuos(r.p);if(d.length)r.opts.push(rnd(d));}
   S.screen='reward';render();
 }
 function lootPick(n,rareOnly){

@@ -1,7 +1,7 @@
 """Undercroft smoke tests. Run: python3 tests/test_game.py  (needs: pip install playwright && playwright install chromium)
 
 Checks that the game loads with no errors, every art file exists, every sprite strip
-matches its frame count, every animation actually plays and hands back to idle,
+matches its frame count, every animation actually plays and hands back to idle, 0-cost cards are free,
 the finishing blow plays before the enemy dies, and every enemy can be fought.
 """
 import asyncio, functools, http.server, os, sys, threading
@@ -71,6 +71,11 @@ async def main():
         stuck = [f'{k}/{a}' for k, a, _, back in rows if back == 'STUCK']
         check(not dead, f'{len(rows)} animations all play {dead[:6]}')
         check(not stuck, f'one-shot animations return to idle {stuck[:6]}')
+
+        print('Zero-cost cards')
+        r = await pg.evaluate("()=>{startRun('runaway');enter({kind:'fight',mon:'rats'});const f=run.fight;f.m.hp=99;f.plays=0;"
+                              "f.hand=['flick','strike'];play(0);const free=f.hand.join()==='strike'&&f.m.hp===97;play(0);return [free,f.hand.includes('strike')]}")
+        check(r == [True, True], f'a 0-cost card plays with no plays left; a 1-cost card does not {r}')
 
         print('Finishing blow')
         await pg.evaluate("()=>{startRun('runaway');enter({kind:'fight',mon:'rats'});const f=run.fight;f.m.hp=1;f.m.blk=0;f.plays=2;f.hand[0]='strike';play(0)}")
