@@ -48,7 +48,7 @@ Object.assign(MON,MON3,MON4);
 const TUNING={"eel":{"hp":13},"leech":{"hp":14},"siren":{"hp":13},"ooze":{"hp":16},"crab":{"hp":15,"i":[["b",6],["a",8]]},"choir":{"hp":24,"i":[["a",5],["w",1],["a",7],["h",4],["a",8]]},"saint":{"hp":24,"i":[["a",6],["w",1],["a",7],["b",6]],"phase2":{"id":"saint2","n":"The Saint Unveiled","hp":14,"i":[["a",6],["a",6],["h",3],["a",10]]}},"robber":{"hp":16},"rubble":{"hp":16},"glyph":{"hp":15},"sentry":{"hp":20,"i":[["b",6],["a",9]]},"stonehound":{"hp":17,"i":[["a",4],["a",5]]},"golem":{"hp":26,"i":[["b",5],["a",7],["a",6],["a",10]]},"shaman":{"hp":34,"i":[["a",6],["c",1],["w",1],["h",5],["a",8]]},"pixies":{"hp":15},"thornsprite":{"hp":16},"changeling":{"hp":16},"stag":{"hp":22,"i":[["b",6],["a",10]]},"moonmoth":{"hp":17},"bloom":{"hp":32,"regen":2,"i":[["a",7],["c",1],["a",10],["w",1]]},"king":{"hp":42,"i":[["a",7],["m",5],["b",7],["m",5],["a",10]],"enrage":2}};
 for(const k in TUNING)Object.assign(MON[k],TUNING[k]);
 /* Deep layers: tougher through staying power, not burst. More HP, slightly softer hits. */
-const DEEP={3:{hp:1.35,atk:1},4:{hp:1.45,atk:1}};
+const DEEP={3:{hp:1.3,atk:1},4:{hp:1.4,atk:1}};
 [[MON3,DEEP[3]],[MON4,DEEP[4]]].forEach(([M,D])=>{for(const k in M){const m=MON[k];m.hp=Math.round(m.hp*D.hp);m.i=m.i.map(([t,v])=>(t==='a'||t==='m')?[t,Math.max(1,Math.round(v*D.atk))]:[t,v]);}});
 const POOL3={e:['robber','rubble','glyph'],h:['sentry','stonehound','glyph','rubble'],m:['golem'],B:['shaman']};
 const POOL4={e:['pixies','thornsprite','changeling'],h:['stag','moonmoth','thornsprite','pixies'],m:['bloom'],B:['king']};
