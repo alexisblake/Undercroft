@@ -4,6 +4,7 @@ Run:  python3 tests/sim/run_sim.py                      (maxed Knight, all three
       python3 tests/sim/run_sim.py --hero cutpurse --runs 500 --seed 7
       python3 tests/sim/run_sim.py --weapons shield,spear --bot simple --fresh
       python3 tests/sim/run_sim.py --heat 8             (maxed, two Heat 8 Pact sets; also --heat 16, --pacts hard,swift)
+      python3 tests/sim/run_sim.py --fresh --add execute,flick (how much do these cards add to a starting deck?)
       python3 tests/sim/run_sim.py --heat-all 8 --runs 300 (every Pact combination worth exactly Heat 8)
       python3 tests/sim/run_sim.py --campaign 100       (100 saves from scratch, 120 runs each: progression curve)
 
@@ -45,6 +46,7 @@ async def main():
     ap.add_argument('--fresh', action='store_true', help='no perks, first-form weapon (default: maxed)')
     ap.add_argument('--heat', type=int, choices=sorted(HEAT_SETS), help='run the preset Pact sets for this Heat')
     ap.add_argument('--pacts', default='', help='comma list of Pact ids, e.g. hard,swift')
+    ap.add_argument('--add', default='', help='comma list of card ids added to the starting deck, e.g. flick,flick')
     ap.add_argument('--heat-all', type=int, default=0, help='every Pact combination worth exactly this Heat')
     ap.add_argument('--campaign', type=int, default=0, help='N saves from scratch instead of fixed-hero runs')
     ap.add_argument('--campaign-runs', type=int, default=120)
@@ -81,7 +83,7 @@ async def main():
             res, t0, left = [], time.time(), a.runs
             while left:
                 n = min(100, left); left -= n
-                res += await pg.evaluate(f"simBatch('{a.hero}','{w}',{n},'{a.bot}',{'true' if a.fresh else 'false'},{pacts})")
+                res += await pg.evaluate(f"simBatch('{a.hero}','{w}',{n},'{a.bot}',{'true' if a.fresh else 'false'},{pacts},{[c for c in a.add.split(',') if c]})")
             wins = sum(r['won'] for r in res); pr = wins / len(res)
             ci = 1.96 * math.sqrt(pr * (1 - pr) / len(res)) * 100
             deaths = collections.Counter(r['layer'] for r in res if not r['won'])

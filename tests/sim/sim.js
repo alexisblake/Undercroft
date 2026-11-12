@@ -218,16 +218,18 @@ function prepHero(hero,weapon,fresh,pacts){
   if(!fresh)for(const k in H.perks)h.perks[k]=H.perks[k].max;
   if(pacts&&pacts.length){meta.clears=1;h.pacts=pacts.slice();}
 }
+let EXTRA=[]; /* cards added to the starting deck, for testing one card's strength */
 function playRun(hero){
   S={screen:'home',tab:'play'};
   startRun(hero);
+  for(const k of EXTRA){run.deck.push(k);run.fight.draw.push(k);}if(EXTRA.length)shuffle(run.fight.draw);
   let n=0;
   while(S.screen!=='end'){if(++n>20000)throw new Error('sim: run did not finish');step();}
   const m=run.fight&&run.fight.m;
   return {won:!!run.amulet,stalled:!!run.stalled,layer:run.layer,chamber:run.chamber,killer:run.won?null:(m?m.id:null),hp:run.hp,deck:run.deck.length,heat:run.heat};
 }
 function simRun(hero,weapon,fresh,pacts){prepHero(hero,weapon,fresh,pacts);return playRun(hero);}
-function simBatch(hero,weapon,n,bot,fresh,pacts){BOT=bot||'smart';const out=[];for(let i=0;i<n;i++)out.push(simRun(hero,weapon,fresh,pacts));return out;}
+function simBatch(hero,weapon,n,bot,fresh,pacts,extra){BOT=bot||'smart';EXTRA=extra||[];const out=[];for(let i=0;i<n;i++)out.push(simRun(hero,weapon,fresh,pacts));return out;}
 
 /* ---------- Campaign: one save from scratch, run after run, levelling and picking perks like a player ---------- */
 const perkRank=p=>p.hp?4:p.swap?3:p.add?2:p.open?2:1;
